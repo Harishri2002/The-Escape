@@ -1,0 +1,40 @@
+class Enemy{
+  constructor(){
+    this.image =new Image();
+    this.image.src='assets/Enemies/Flying/Dracoo.png';
+    this.EnemySpriteWidth=237;
+    this.EnemySpriteHeight=330;
+    this.height=this.EnemySpriteHeight /2.5;
+    this.width=this.EnemySpriteWidth / 2.5
+    this.x = Math.random() * (canvas.width - this.width);
+    this.y = Math.random() * (canvas.height - this.height);
+    this.frameX=0;
+    this.speed=Math.floor(Math.random() * 20 + 1);
+    this.angle = 0;
+  } 
+  update(){
+    this.x += Math.random() * 5 - 2.5;
+    this.y += Math.random() * 5 - 2.5;
+    this.angle=0.05;
+    if(gameFrame % this.speed == 0)
+      this.frameX > 4 ? this.frameX=0 : this.frameX++;
+    
+  }
+  draw(){
+    ctx.drawImage(this.image,this.frameX*this.EnemySpriteWidth,0,this.EnemySpriteWidth,this.EnemySpriteHeight,this.x,this.y,this.width,this.height); 
+   }
+}
+
+for(let i=0; i<numberofEnemy; i++){
+   MyEnemys.push(new Enemy());
+}
+function Enemys(){  
+  MyEnemys.forEach(object => {
+      object.update();
+      object.draw();
+  })
+  requestAnimationFrame(Enemys);
+}
+Enemys();
+
+});

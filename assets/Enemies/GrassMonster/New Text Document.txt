@@ -1,0 +1,364 @@
+window.addEventListener('load',function(){
+const canvas = document.getElementById("canvas1");
+const ctx=canvas.getContext('2d');
+const CANVAS_WIDTH = canvas.width =700;
+const CANVAS_HEIGHT = canvas.height =500;
+
+//InputHandler
+
+class InputHandler {
+  constructor(){
+    this.keys = [];
+    window.addEventListener('keydown', e => {
+      if (( e.key === 'ArrowDown' ||
+          e.key === 'ArrowUp'    ||
+          e.key === 'ArrowLeft'  ||
+          e.key === 'ArrowRight' )
+          && this.keys.indexOf(e.key) === -1){
+            this.keys.push(e.key);
+       }
+    });
+    window.addEventListener('keyup', e => {
+      if ( e.key === 'ArrowDown' ||
+          e.key === 'ArrowUp'    ||
+          e.key === 'ArrowLeft'  ||
+          e.key === 'ArrowRight' ){
+          this.keys.splice(this.keys.indexOf(e.key), 1);
+       }
+    });
+  }
+}
+
+//Background
+
+let gameSpeed=2;
+let x1=0;
+let x2=700;
+
+const BackgroundImage1= new Image();
+BackgroundImage1.src='assets/Backgound/PNG/CBG1/Layers/Middle_Decor.png';
+const BackgroundImage2= new Image();
+BackgroundImage2.src='assets/Backgound/PNG/CBG1/Layers/Ground.png';
+const BackgroundImage3= new Image();
+BackgroundImage3.src='assets/Backgound/PNG/CBG1/Layers/Sky.png';
+const BackgroundImage4= new Image();   
+BackgroundImage4.src='assets/Backgound/PNG/CBG1/Layers/Foreground.png';
+const BackgroundImage5= new Image();
+BackgroundImage5.src='assets/Backgound/PNG/CBG1/Layers/BG_Decor.png';
+
+class Layer{
+  constructor(image,speedModifier){
+    this.x1=0;
+    this.y=0;
+    this.width=700;
+    this.height=500;
+    this.x2=this.width;
+    this.image=image;
+    this.speedModifier=speedModifier;
+    this.speed=gameSpeed * this.speedModifier;
+  }
+  update(){
+
+    this.speed = gameSpeed * this.speedModifier;
+    if(this.x1 <= -this.width){
+      this.x1 = this.width + this.x2 - this.speed;
+    }
+    if(this.x2 <= -this.width){
+      this.x2 = this.width + this.x1 - this.speed;
+    }
+    this.x1=Math.floor(this.x1 - this.speed);
+    this.x2=Math.floor(this.x2 - this.speed);
+  }
+  draw(){
+    ctx.drawImage(this.image, this.x1, this.y, this.width ,this.height);
+    ctx.drawImage(this.image, this.x2, this.y, this.width ,this.height);
+  }
+}
+
+// class Backgound{
+//   constructor(gameWidth,gameHeight,image,speedModifier){
+//     this.gameWidth = gameWidth;
+//     this.gameHeight= gameHeight;
+//     this.x = 0;
+//     this.y = 0;
+//     this.x1=0;
+//     this.x2=this.width;
+//     this.width=700;
+//     this.height=500;
+//     this.speeed=0;
+//     this.image=image;
+//     this.speedModifier=speedModifier;
+//     this.speed=gameSpeed * this.speedModifier;
+//   }
+//   update(Input){
+//     if (Input.keys.indexOf('ArrowRight') > -1){
+//       this.speed = gameSpeed * this.speedModifier;
+//      if(this.x1 <= -this.width){
+//       this.x1 = this.width + this.x2 - this.speed;
+//        }
+//      if(this.x2 <= -this.width){
+//       this.x2 = this.width + this.x1 - this.speed;
+//       }
+//       this.x1=Math.floor(this.x1 - this.speed);
+//       this.x2=Math.floor(this.x2 - this.speed);
+//      }
+//   }
+//   draw(context){
+//     context.drawImage(this.image, this.x1, this.y, this.width ,this.height);
+//     context.drawImage(this.image, this.x2, this.y, this.width ,this.height);
+//   }
+// }
+
+const Layer1 = new Layer(BackgroundImage3,0.2); 
+const Layer2 = new Layer(BackgroundImage5,0.4); 
+const Layer3 = new Layer(BackgroundImage1,0.6); 
+const Layer4 = new Layer(BackgroundImage4,0.8); 
+const Layer5 = new Layer(BackgroundImage2,1); 
+ 
+// const Layer1 = new Backgound(canvas.width,canvas.height,BackgroundImage3,0.2); 
+// const Layer2 = new Backgound(canvas.width,canvas.height,BackgroundImage5,0.4); 
+// const Layer3 = new Backgound(canvas.width,canvas.height,BackgroundImage1,0.6);
+// const Layer4 = new Backgound(canvas.width,canvas.height,BackgroundImage4,0.8); 
+// const Layer5 = new Backgound(canvas.width,canvas.height,BackgroundImage2,1);
+
+const LayerObj=[Layer1,Layer2,Layer3,Layer4,Layer5];
+
+function BackG(){
+  ctx.clearRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
+  LayerObj.forEach( object => {  
+    object.update();
+    object.draw();
+  });
+    requestAnimationFrame(BackG);  
+}
+BackG();
+
+//Dragon
+
+
+const spriteWidth=200;
+const spriteHeight=160;
+let gameFrame=gameSpeed;
+const StaggerFrames=10;
+
+const spriteAnimation=[];
+const animationStates=[
+      {
+        name:'Run',
+        frame: 4,
+      },
+      {
+        name: 'Idle',
+        frame: 4,
+      },
+      {
+        name: 'Attack',
+        frame:8,
+      },
+      {
+        name: 'Fire',
+        frame:4,
+      }
+];
+
+animationStates.forEach( (state,index)=> {
+  let frame={
+      loc:[],
+  }
+  for(let j=0;j < state.frame; j++){
+      let positionX=j*spriteWidth;
+      let positionY=index * spriteHeight;
+      frame.loc.push({x: positionX,y: positionY});
+  }
+  spriteAnimation[state.name] = frame;
+  });
+
+let Action="Run";
+class dragon {
+  constructor(gameWidth,gameHeight){  
+    this.gameWidth =gameWidth;
+    this.gameHeight = gameHeight;
+    this.width=200;
+    this.height = 160;
+    this.image = document.getElementById('dragon');
+    this.x=0;
+    this.y= this.gameHeight - this.height;
+    this.frameX = 0;
+    this.maxframe = 4;
+    this.framey = 0;
+    this.fps = 20;
+    this.frametimer = 0;
+    this.frameinterval = 1000/this.fps;
+    this.speed = 0;
+    this.vy = 0;
+    this.weight = 1;
+  }
+  update(Input,deltaTime){
+    //  this.x += this.speed;
+    //sprite animation
+    if(this.frametimer > this.frameinterval){
+        if(this.frameX >= this.maxframe)this.frameX = 0;
+        else this.frameX++;
+        this.frametimer = 0;
+    } else {
+        this.frametimer += deltaTime;
+    }
+    //controls
+     if (Input.keys.indexOf('ArrowRight') > -1){
+      this.speed = 5;
+     } else if(Input.keys.indexOf('ArrowLeft') > -1) {
+        this.speed = -5;
+     } else if(Input.keys.indexOf('ArrowUp') > -1 && this.onGround()) {
+        this.vy -= 20;
+     } else {
+      this.speed = 0;
+     }
+     //horixontal movemetn
+     this.x += this.speed;
+     if (this.x < 0) this.x = 0;
+     else if (this.x > this.gameWidth - this.width) this.x = this.gameWidth - this.width;
+     //vertical movement
+     this.y += this.vy;
+     if (!this.onGround()){
+      this.vy += this.weight;
+     }else {
+      this.vy = 0;
+     }
+
+     if(this.y > this.gameHeight - this.height) this.y = this.gameHeight - this.height;
+     gameFrame++;
+  }
+  onGround(){
+    return this.y >= this.gameHeight -this.height;
+  }
+  draw(context){
+    let position = Math.floor(gameFrame/StaggerFrames)%spriteAnimation[Action].loc.length;
+    let frameX=spriteWidth * position;
+    let frameY = spriteAnimation[Action].loc[position].y;
+    context.fillStyle = 'white';
+    context.fillRect(this.x,this.y,this.width,this.height);
+    context.drawImage(this.image,frameX,frameY,this.width,this.height,this.x,this.y,this.width,this.height);
+  }
+}
+//Enemy
+
+
+const Draco=new Image();
+Draco.src='assets/Enemies/Flying/Dracoo.png';
+const numberofEnemy=3;
+let MyEnemys=[];
+
+// class Enemy{
+//   constructor(){
+//     this.image =new Image();
+//     this.image.src='assets/Enemies/Flying/Dracoo.png';
+//     this.PathSPeed = Math.random() * 4 + 1;
+//     this.EnemySpriteWidth=237;
+//     this.EnemySpriteHeight=330;
+//     this.height=this.EnemySpriteHeight /2.5;
+//     this.width=this.EnemySpriteWidth / 2.5;
+//     this.x = Math.random() * (canvas.width - this.width);
+//     this.y = Math.random() * (canvas.height - this.height );
+//     this.frameX=0;
+//     this.speed=Math.floor(Math.random() * 10 + 1);
+//     this.angle = 2;
+//     this.angleSpeed = Math.random() * 0.2;
+//     this.curve =Math.random() * 3;
+//   } 
+//   update(){
+//     this.x -= this.PathSPeed;
+//     this.y += (this.curve * Math.sin(this.angle));
+//     this.angle += this.angleSpeed;
+//     if(this.x + this.width < 0) this.x =canvas.width;
+//     if(gameFrame % this.speed == 0)
+//       this.frameX > 4 ? this.frameX=0 : this.frameX++;
+    
+//   }
+//   draw(){
+//     ctx.drawImage(this.image,this.frameX*this.EnemySpriteWidth,0,this.EnemySpriteWidth,this.EnemySpriteHeight,this.x,this.y,this.width,this.height); 
+//    }
+// }
+
+class Enemy {
+      constructor(gameWidth,gameHeight){
+        this.gameWidth = gameWidth;
+        this.gameHeight = gameHeight;
+        this.width = 77;
+        this.height = 67;
+        this.image = document.getElementById('grassmonster');
+        this.x = this.gameWidth;
+        this.y = this.gameHeight  - this.height;
+        this.frameX = 0;
+        this.maxframe = 13;
+        this.fps = 20;
+        this.speed = 8;
+        this.frametimer = 0;
+        this.frameinterval = 1000/this.fps;
+        this.markedfordeletion = false;
+      }
+      draw(context){
+        context.drawImage(this.image,this.frameX * this.width, 0 , this.width, this.height,this.x,this.y,this.width,this.height);
+      }
+      update(deltaTime){
+        if(this.frametimer > this.frameinterval){
+          if (this.frameX >= this.maxframe)this.frameX = 0;
+          else this.frameX++;
+          this.frametimer=0;
+        } else {
+          this.frametimer += deltaTime;
+        }
+        this.x -= this.speed;
+        if(this.x < 0 -this.width) this.markedfordeletion = true;
+      }
+}
+
+// for(let i=0; i<numberofEnemy; i++){
+//    MyEnemys.push(new Enemy());
+// }
+
+
+function handleEnemies(deltaTime){
+  if(EnemyTimer > EnemyInterval + randomenemyinterval){
+    MyEnemys.push(new Enemy(canvas.width,canvas.height));
+    randomenemyinterval = Math.random() * 1000 + 500;
+    EnemyTimer=0
+  }else{
+    EnemyTimer += deltaTime;
+  }
+    MyEnemys.forEach(enemy => {
+      enemy.draw(ctx);
+      enemy.update(deltaTime);
+    })
+    MyEnemys = MyEnemys.filter(enemy => !enemy.markedfordeletion);
+}
+
+
+
+let lastTime=0;
+let EnemyTimer=0;
+let EnemyInterval = 1000;
+let randomenemyinterval = Math.random() * 1000 + 500;
+
+const Input = new InputHandler()
+const drg = new dragon(canvas.width,canvas.height);
+
+function animate(timeStamp){
+  ctx.clearRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
+  const deltaTime = timeStamp - lastTime;
+  lastTime = timeStamp;
+  LayerObj.forEach( object => {  
+    object.update(Input);
+    object.draw(ctx);
+  });
+  // MyEnemys.forEach(object => {
+  //     object.update();
+  //     object.draw();
+  // })
+  drg.draw(ctx);
+  drg.update(Input,deltaTime);
+  handleEnemies(deltaTime);
+  requestAnimationFrame(animate);
+}
+animate(0);
+
+});
