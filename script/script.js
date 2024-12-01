@@ -1,3 +1,4 @@
+
 window.addEventListener('load',function(){
 const canvas = document.getElementById("canvas1");
 const ctx=canvas.getContext('2d');
@@ -6,6 +7,10 @@ const CANVAS_HEIGHT = canvas.height =500;
 let score =0;
 let gameOver=false;
 //InputHandler
+
+setTimeout(function() {
+  document.getElementById('startScreen').style.display = 'none';
+}, 2000); // Hide after 3 seconds
 
 class InputHandler {
   constructor(){
@@ -229,6 +234,7 @@ class dragon {
     context.drawImage(this.image,frameX,frameY,this.width,this.height,this.x,this.y,this.width,this.height);
   }
 }
+
 //Enemy
 
 
